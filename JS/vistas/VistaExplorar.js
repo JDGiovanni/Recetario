@@ -6,250 +6,205 @@ class VistaExplorar {
       criterios: { nombre: '', categoria: '', origen: '', ingrediente: '' },
       resultadosCompletos: [],
       paginaActual: 1,
-      porPagina: 12,
-      cargando: false
+      porPagina: 12
     };
+    this.tarjetas = [];
+    this.busquedaActual = 0;
     this.render();
   }
 
   render() {
     this.contenedor.innerHTML = `
       <section class="vista-explorar">
-        <h2>Explorar Recetas</h2>
+        <h1>Explorar recetas</h1>
         <div id="formulario-busqueda-container"></div>
-        <div id="resultados-info" class="resultados-info"></div>
+        <div id="resultados-info" class="resultados-info" aria-live="polite"></div>
         <div id="resultados-grid" class="grid-tarjetas"></div>
         <div id="paginador-container"></div>
       </section>
     `;
 
-    this.inicializarFormulario();
+    this.formularioContainer = this.contenedor.querySelector('#formulario-busqueda-container');
+    this.resultadosGrid = this.contenedor.querySelector('#resultados-grid');
+    this.resultadosInfo = this.contenedor.querySelector('#resultados-info');
+    this.paginadorContainer = this.contenedor.querySelector('#paginador-container');
+    this.estadoCargaFiltros = new EstadoCarga(this.formularioContainer);
+    this.estadoCargaFiltros.mostrarCargando('Cargando filtros...');
+    this.cargarFiltros();
   }
 
-  inicializarFormulario() {
-    const container = document.getElementById('formulario-busqueda-container');
-    container.innerHTML = `
-      <form id="form-explorar" class="form-explorar">
-        <div class="campo-grupo">
-          <label>Nombre:</label>
-          <input type="text" id="filtro-nombre" placeholder="Ej. Arrabiata">
-        </div>
-        <div class="campo-grupo">
-          <label>Categoría:</label>
-          <select id="filtro-categoria">
-            <option value="">Todas las categorías</option>
-          </select>
-        </div>
-        <div class="campo-grupo">
-          <label>Origen:</label>
-          <select id="filtro-origen">
-            <option value="">Todos los orígenes</option>
-          </select>
-        </div>
-        <div class="campo-grupo">
-          <label>Ingrediente:</label>
-          <input type="text" id="filtro-ingrediente" placeholder="Ej. Chicken">
-        </div>
-        <div class="form-acciones">
-          <button type="submit" class="btn-primario">Buscar</button>
-          <button type="button" id="btn-limpiar" class="btn-secundario">Limpiar</button>
-        </div>
-      </form>
-      <div id="mensaje-validacion" class="mensaje-validacion"></div>
-    `;
-
-    this.cargarSelectsFiltros();
-    this.configurarEventosFormulario();
+  async obtenerJSON(url) {
+    const respuesta = await fetch(url);
+    if (!respuesta.ok) throw new Error(`La solicitud falló (${respuesta.status}).`);
+    return respuesta.json();
   }
 
-  async cargarSelectsFiltros() {
+  async cargarFiltros() {
     try {
-      const [resCat, resArea] = await Promise.all([
-        fetch('https://www.themealdb.com/api/json/v1/1/categories.php').then(r => r.json()),
-        fetch('https://www.themealdb.com/api/json/v1/1/list.php?a=list').then(r => r.json())
+      const [categorias, origenes] = await Promise.all([
+        this.obtenerJSON('https://www.themealdb.com/api/json/v1/1/categories.php'),
+        this.obtenerJSON('https://www.themealdb.com/api/json/v1/1/list.php?a=list')
       ]);
-
-      const selectCat = document.getElementById('filtro-categoria');
-      if (resCat.categories && selectCat) {
-        resCat.categories.forEach(c => {
-          const opt = document.createElement('option');
-          opt.value = c.strCategory;
-          opt.textContent = c.strCategory;
-          selectCat.appendChild(opt);
-        });
-      }
-
-      const selectArea = document.getElementById('filtro-origen');
-      if (resArea.meals && selectArea) {
-        resArea.meals.forEach(a => {
-          const opt = document.createElement('option');
-          opt.value = a.strArea;
-          opt.textContent = a.strArea;
-          selectArea.appendChild(opt);
-        });
-      }
-    } catch (e) {
-      console.error('Error cargando filtros de exploración:', e);
+      if (!this.contenedor.isConnected) return;
+      this.formularioBusqueda = new FormularioBusqueda(this.formularioContainer, {
+        categorias: categorias.categories || [],
+        origenes: origenes.meals || [],
+        onBuscar: criterios => this.ejecutarBusqueda(criterios),
+        onLimpiar: () => this.limpiarResultados()
+      });
+      this.formularioBusqueda.montar();
+    } catch (error) {
+      console.error('Error al cargar filtros de exploración:', error);
+      this.estadoCargaFiltros.mostrarError(
+        'No se pudieron cargar las opciones de búsqueda.',
+        () => this.cargarFiltros()
+      );
     }
   }
 
-  configurarEventosFormulario() {
-    const form = document.getElementById('form-explorar');
-    const btnLimpiar = document.getElementById('btn-limpiar');
-
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      this.ejecutarBusqueda();
-    });
-
-    btnLimpiar.addEventListener('click', () => {
-      form.reset();
-      this.estado.resultadosCompletos = [];
-      this.estado.paginaActual = 1;
-      document.getElementById('resultados-grid').innerHTML = '';
-      document.getElementById('resultados-info').innerHTML = '';
-      document.getElementById('mensaje-validacion').textContent = '';
-      document.getElementById('paginador-container').innerHTML = '';
-    });
+  limpiarTarjetas() {
+    this.tarjetas.forEach(tarjeta => tarjeta.destruir?.());
+    this.tarjetas = [];
   }
 
-  async ejecutarBusqueda() {
-    const nombre = document.getElementById('filtro-nombre').value.trim();
-    const categoria = document.getElementById('filtro-categoria').value;
-    const origen = document.getElementById('filtro-origen').value;
-    const ingrediente = document.getElementById('filtro-ingrediente').value.trim();
-    const valMsg = document.getElementById('mensaje-validacion');
-
-    if (!nombre && !categoria && !origen && !ingrediente) {
-      valMsg.textContent = 'Debes indicar al menos un criterio de búsqueda.';
-      return;
-    }
-
-    valMsg.textContent = '';
-    this.estado.criterios = { nombre, categoria, origen, ingrediente };
+  limpiarResultados() {
+    this.busquedaActual++;
+    this.estado.resultadosCompletos = [];
     this.estado.paginaActual = 1;
+    this.limpiarTarjetas();
+    this.resultadosGrid.replaceChildren();
+    this.resultadosInfo.textContent = '';
+    this.paginadorContainer.replaceChildren();
+  }
 
-    const grid = document.getElementById('resultados-grid');
-    grid.innerHTML = '<div class="skeleton-loader">Buscando recetas en paralelo...</div>';
+  async ejecutarBusqueda(criterios) {
+    this.estado.criterios = criterios;
+    this.estado.paginaActual = 1;
+    const busqueda = ++this.busquedaActual;
+    this.limpiarTarjetas();
+    this.resultadosInfo.textContent = '';
+    this.paginadorContainer.replaceChildren();
+    this.estadoCargaResultados = new EstadoCarga(this.resultadosGrid);
+    this.estadoCargaResultados.mostrarCargando('Buscando recetas...');
 
     try {
-      const promesas = [];
-      if (nombre) promesas.push(fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(nombre)}`).then(r => r.json()));
-      if (categoria) promesas.push(fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(categoria)}`).then(r => r.json()));
-      if (origen) promesas.push(fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?a=${encodeURIComponent(origen)}`).then(r => r.json()));
-      if (ingrediente) promesas.push(fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(ingrediente)}`).then(r => r.json()));
+      const consultas = [];
+      if (criterios.nombre) {
+        consultas.push(`search.php?s=${encodeURIComponent(criterios.nombre)}`);
+      }
+      if (criterios.categoria) {
+        consultas.push(`filter.php?c=${encodeURIComponent(criterios.categoria)}`);
+      }
+      if (criterios.origen) {
+        consultas.push(`filter.php?a=${encodeURIComponent(criterios.origen)}`);
+      }
+      if (criterios.ingrediente) {
+        consultas.push(`filter.php?i=${encodeURIComponent(criterios.ingrediente)}`);
+      }
 
-      const resultados = await Promise.all(promesas);
-      let listasRecetas = resultados.map(res => res.meals || []);
-      
-      if (listasRecetas.some(lista => lista === null || lista.length === 0)) {
+      const respuestas = await Promise.all(consultas.map(endpoint =>
+        this.obtenerJSON(`https://www.themealdb.com/api/json/v1/1/${endpoint}`)
+      ));
+      if (busqueda !== this.busquedaActual || !this.contenedor.isConnected) return;
+
+      const listas = respuestas.map(respuesta => respuesta.meals || []);
+      if (listas.some(lista => lista.length === 0)) {
         this.estado.resultadosCompletos = [];
       } else {
-        let interseccion = listasRecetas[0];
-        for (let i = 1; i < listasRecetas.length; i++) {
-          const idsActuales = new Set(listasRecetas[i].map(r => r.idMeal));
-          interseccion = interseccion.filter(r => idsActuales.has(r.idMeal));
-        }
-
-        interseccion.sort((a, b) => a.strMeal.localeCompare(b.strMeal));
-        this.estado.resultadosCompletos = interseccion;
+        let coincidencias = listas[0];
+        listas.slice(1).forEach(lista => {
+          const ids = new Set(lista.map(receta => receta.idMeal));
+          coincidencias = coincidencias.filter(receta => ids.has(receta.idMeal));
+        });
+        this.estado.resultadosCompletos = coincidencias
+          .sort((a, b) => String(a.strMeal).localeCompare(String(b.strMeal)));
       }
 
       this.renderizarResultados();
-
     } catch (error) {
+      if (busqueda !== this.busquedaActual) return;
       console.error('Error en búsqueda:', error);
-      grid.innerHTML = '<p class="error-texto">Ocurrió un error al realizar la búsqueda. Comprueba tu conexión.</p>';
+      this.resultadosGrid.innerHTML = `
+        <div class="error-banner" role="alert">
+          <p>No se pudo completar la búsqueda. Comprueba tu conexión e inténtalo otra vez.</p>
+          <button type="button" class="btn-primario btn-reintentar">Reintentar</button>
+        </div>
+      `;
+      this.resultadosGrid.querySelector('.btn-reintentar')
+        .addEventListener('click', () => this.ejecutarBusqueda(this.estado.criterios));
     }
   }
 
-  async renderizarResultados() {
-    const grid = document.getElementById('resultados-grid');
-    const info = document.getElementById('resultados-info');
-    const paginadorContainer = document.getElementById('paginador-container');
+  async obtenerDetalle(id) {
+    const datos = await this.obtenerJSON(
+      `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${encodeURIComponent(id)}`
+    );
+    return datos.meals?.[0] || null;
+  }
+
+  async agregarAlComparador(receta, boton) {
+    if (boton) boton.disabled = true;
+    try {
+      const completa = receta.strInstructions ? receta : await this.obtenerDetalle(receta.idMeal);
+      if (!completa) throw new Error('No se encontró el detalle de la receta.');
+      window.dispatchEvent(new CustomEvent('app:agregar-comparador', {
+        detail: { receta: completa }
+      }));
+    } catch (error) {
+      console.error('No se pudo agregar la receta al comparador:', error);
+      window.dispatchEvent(new CustomEvent('app:mensaje', {
+        detail: { mensaje: 'No se pudo cargar la receta para compararla.' }
+      }));
+    } finally {
+      if (boton?.isConnected) boton.disabled = false;
+    }
+  }
+
+  renderizarResultados() {
+    this.limpiarTarjetas();
+    this.resultadosGrid.replaceChildren();
+    this.paginadorContainer.replaceChildren();
 
     const total = this.estado.resultadosCompletos.length;
-    if (total === 0) {
-      info.innerHTML = '';
-      grid.innerHTML = '<div class="estado-vacio"><p>No se encontraron recetas con los criterios especificados.</p></div>';
-      paginadorContainer.innerHTML = '';
+    if (!total) {
+      this.resultadosInfo.textContent = '';
+      this.resultadosGrid.innerHTML = '<div class="estado-vacio"><p>No se encontraron recetas con esos criterios.</p></div>';
       return;
     }
 
-    info.innerHTML = `<p>Se encontraron <strong>${total}</strong> recetas.</p>`;
-
+    this.resultadosInfo.innerHTML = `Se encontraron <strong>${total}</strong> recetas.`;
     const inicio = (this.estado.paginaActual - 1) * this.estado.porPagina;
-    const fin = inicio + this.estado.porPagina;
-    const paginaRecetas = this.estado.resultadosCompletos.slice(inicio, fin);
-
-    grid.innerHTML = paginaRecetas.map(r => `
-      <div class="tarjeta-receta" data-id="${r.idMeal}">
-        <img src="${r.strMealThumb}" alt="${r.strMeal}" loading="lazy">
-        <div class="tarjeta-body">
-          <h4>${r.strMeal}</h4>
-          <div class="tarjeta-acciones-inferior">
-            <a href="#detalle/${r.idMeal}" class="btn-secundario" data-link>Ver Detalle</a>
-            <button class="btn-comparar-card" data-id="${r.idMeal}">Comparar</button>
-          </div>
-        </div>
-      </div>
-    `).join('');
-
-    grid.querySelectorAll('.btn-comparar-card').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const id = e.target.getAttribute('data-id');
-        const recetaFull = await this.obtenerDetalleRapido(id);
-        if (recetaFull) {
-          window.dispatchEvent(new CustomEvent('app:agregar-comparador', { detail: { receta: recetaFull } }));
+    const recetas = this.estado.resultadosCompletos.slice(inicio, inicio + this.estado.porPagina);
+    recetas.forEach(receta => {
+      const elemento = document.createElement('div');
+      this.resultadosGrid.appendChild(elemento);
+      const tarjeta = new TarjetaReceta(elemento, receta, {
+        onComparar: (seleccionada) => {
+          const boton = elemento.querySelector('.btn-comparar-card');
+          this.agregarAlComparador(seleccionada, boton);
         }
       });
+      tarjeta.montar();
+      this.tarjetas.push(tarjeta);
     });
 
-    this.renderizarPaginador(total);
-  }
-
-  async obtenerDetalleRapido(id) {
-    try {
-      const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`);
-      const data = await res.json();
-      return data.meals ? data.meals[0] : null;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  renderizarPaginador(total) {
-    const container = document.getElementById('paginador-container');
-    const totalPaginas = Math.ceil(total / this.estado.porPagina);
-    if (totalPaginas <= 1) {
-      container.innerHTML = '';
-      return;
-    }
-
-    container.innerHTML = `
-      <div class="paginador">
-        <button ${this.estado.paginaActual === 1 ? 'disabled' : ''} id="btn-prev">Anterior</button>
-        <span>Página ${this.estado.paginaActual} de ${totalPaginas}</span>
-        <button ${this.estado.paginaActual === totalPaginas ? 'disabled' : ''} id="btn-next">Siguiente</button>
-      </div>
-    `;
-
-    document.getElementById('btn-prev').addEventListener('click', () => {
-      if (this.estado.paginaActual > 1) {
-        this.estado.paginaActual--;
+    this.paginador = new Paginador(this.paginadorContainer, {
+      totalElementos: total,
+      porPagina: this.estado.porPagina,
+      paginaActual: this.estado.paginaActual,
+      alCambiar: pagina => {
+        this.estado.paginaActual = pagina;
         this.renderizarResultados();
       }
     });
-
-    document.getElementById('btn-next').addEventListener('click', () => {
-      if (this.estado.paginaActual < totalPaginas) {
-        this.estado.paginaActual++;
-        this.renderizarResultados();
-      }
-    });
+    this.paginador.montar();
   }
 
   destruir() {
-    this.contenedor.innerHTML = '';
+    this.busquedaActual++;
+    this.limpiarTarjetas();
+    this.estadoCargaFiltros?.destruir();
+    this.estadoCargaResultados?.destruir();
+    this.contenedor.replaceChildren();
   }
 }

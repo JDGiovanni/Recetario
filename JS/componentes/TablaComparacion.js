@@ -51,11 +51,81 @@ class TablaComparacion {
     return ingredientes;
   }
 
+  obtenerPasos(receta) {
+    const texto = String(receta.strInstructions || '').replace(/\r\n?/g, '\n').trim();
+    if (!texto) return [];
+
+    let pasos = texto.split(/\n+/).map(paso => paso.trim()).filter(Boolean);
+    if (pasos.length === 1 && /(?:^|\s)(?:step\s*\d+|\d+[.)])\s+/i.test(pasos[0])) {
+      pasos = pasos[0]
+        .split(/\s+(?=(?:step\s*\d+|\d+[.)])\s+)/i)
+        .map(paso => paso.trim())
+        .filter(Boolean);
+    }
+
+    return pasos.map(paso =>
+      paso.replace(/^(?:step\s*\d+\s*[:.)-]?|\d+[.)])\s*/i, '').trim()
+    ).filter(Boolean);
+  }
+
+  obtenerCantidadPalabras(receta) {
+    const instrucciones = String(receta.strInstructions || '').trim();
+    return instrucciones ? instrucciones.split(/\s+/).length : 0;
+  }
+
   obtenerTags(receta) {
     return String(receta.strTags || '')
       .split(',')
       .map(tag => tag.trim())
       .filter(Boolean);
+  }
+
+  crearFilasResumen() {
+    const recetas = this.recetas;
+    const ingredientes = recetas.map(receta => this.obtenerIngredientes(receta));
+    const conjuntos = ingredientes.map(lista =>
+      new Set(lista.map(ingrediente => ingrediente.normalizado))
+    );
+    const compartidos = ingredientes[0]
+      .filter(ingrediente => conjuntos[1].has(ingrediente.normalizado))
+      .map(ingrediente => ingrediente.nombre);
+    const exclusivos = ingredientes.map((lista, indice) =>
+      lista.filter(ingrediente => !conjuntos[1 - indice].has(ingrediente.normalizado))
+        .map(ingrediente => ingrediente.nombre)
+    );
+    const tags = recetas.map(receta => this.obtenerTags(receta));
+    const tagsComunes = tags[0]
+      .filter(tag => tags[1].some(otro => this.normalizar(otro) === this.normalizar(tag)));
+    const unionIngredientes = new Set([...conjuntos[0], ...conjuntos[1]]);
+    const similitud = unionIngredientes.size
+      ? Math.round((compartidos.length / unionIngredientes.size) * 100)
+      : 0;
+    const cantidadPasos = recetas.map(receta => this.obtenerPasos(receta).length);
+    const cantidadPalabras = recetas.map(receta => this.obtenerCantidadPalabras(receta));
+
+    let recetaSencilla = 'Empate';
+    const [primera, segunda] = recetas;
+    if (ingredientes[0].length !== ingredientes[1].length) {
+      recetaSencilla = ingredientes[0].length < ingredientes[1].length
+        ? primera.strMeal
+        : segunda.strMeal;
+    } else if (cantidadPasos[0] !== cantidadPasos[1]) {
+      recetaSencilla = cantidadPasos[0] < cantidadPasos[1] ? primera.strMeal : segunda.strMeal;
+    } else if (cantidadPalabras[0] !== cantidadPalabras[1]) {
+      recetaSencilla = cantidadPalabras[0] < cantidadPalabras[1] ? primera.strMeal : segunda.strMeal;
+    }
+
+    return [
+      this.crearFila('Ingredientes en común', [compartidos.join(', ') || 'Ninguno', compartidos.join(', ') || 'Ninguno']),
+      this.crearFila('Ingredientes exclusivos', [
+        exclusivos[0].join(', ') || 'Ninguno',
+        exclusivos[1].join(', ') || 'Ninguno'
+      ]),
+      this.crearFila('Etiquetas en común', [tagsComunes.join(', ') || 'Ninguna', tagsComunes.join(', ') || 'Ninguna']),
+      this.crearFila('Video disponible', recetas.map(receta => receta.strYoutube ? 'Sí' : 'No')),
+      this.crearFila('Similitud de ingredientes', [`${similitud}%`, `${similitud}%`]),
+      this.crearFila('Receta más sencilla', [recetaSencilla, recetaSencilla])
+    ].join('');
   }
 
   escaparAtributo(valor) {
@@ -144,14 +214,13 @@ class TablaComparacion {
       ),
       this.crearFila(
         'Cantidad de pasos',
-        recetas.map(receta => {
-          const instrucciones = String(receta.strInstructions || '').trim();
-          if (!instrucciones) {
-            return 'No especificado';
-          }
-          return String(instrucciones.split(/\n+/).filter(paso => paso.trim()).length);
-        })
+        recetas.map(receta => String(this.obtenerPasos(receta).length))
       ),
+      this.crearFila(
+        'Extensión de instrucciones',
+        recetas.map(receta => `${this.obtenerCantidadPalabras(receta)} palabras`)
+      ),
+      this.crearFilasResumen(),
       this.crearFilasIngredientes()
     ].join('');
 
