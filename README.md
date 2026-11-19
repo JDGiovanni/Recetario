@@ -36,6 +36,12 @@
       - EstadoCarga
         - Responsabilidad: Gestionar los estados visuales de espera (skeleton loaders) y mostrar mensajes de error con opción de recuperación cuando falla una petición.
         - Eventos: Nativos: click en el botón .btn-reintentar para ejecutar el callback de recarga enviado por la vista.
-        - Dónde se usó `Promise.all` y dónde `Promise.allSettled`, y por qué.
+- Dónde se usó `Promise.all` y dónde `Promise.allSettled`, y por qué.
+  - Promise.all
+  - Dónde se usó: En la vista de exploración (VistaExplorar) para ejecutar consultas simultáneas cuando se combinan filtros cruzados (como categoría, origen o ingrediente) y en la carga inicial de metadatos necesarios.
+  - Por qué: Porque en esos escenarios todas las respuestas son obligatorias y necesarias en conjunto para construir la intersección de resultados o habilitar los filtros; si una falla, el conjunto completo de esa operación combinada no puede completarse de forma válida.
+  - Promise.allSettled
+  - Dónde se usó: En la vista de inicio (VistaInicio) y en las recetas relacionadas de la vista de detalle (VistaDetalle), donde se consultan en paralelo distintas fuentes o criterios (por ejemplo, categoría y origen).
+  - Por qué: Porque permite tolerar fallos parciales sin romper la interfaz; si falla la consulta por origen o una de las peticiones secundarias, las que sí se resolvieron siguen mostrando contenido útil al usuario.
 - Sección de **decisiones de diseño**: paleta de colores, tipografías, criterio de iconografía y referencias de inspiración.
 - Capturas de pantalla de cada vista.
