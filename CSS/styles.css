@@ -600,3 +600,77 @@ img {
     grid-template-columns: 1fr;
   }
 }
+/* ==========================================
+   BOTONES EN TARJETAS DE CUADRÍCULA Y PAGINADOR
+   ========================================== */
+.tarjeta-receta a,
+.tarjeta-receta button,
+.tarjeta-body a,
+.tarjeta-body button,
+.tarjeta-acciones a,
+.tarjeta-acciones button {
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.92rem;
+  line-height: 1.2;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  margin: 0;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.14);
+  transition: background 0.2s, transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.tarjeta-receta a:hover,
+.tarjeta-receta button:hover,
+.tarjeta-body a:hover,
+.tarjeta-body button:hover,
+.tarjeta-acciones a:hover,
+.tarjeta-acciones button:hover {
+  background: var(--primary-dark);
+}
+
+.tarjeta-receta a:active,
+.tarjeta-receta button:active,
+.tarjeta-body a:active,
+.tarjeta-body button:active,
+.tarjeta-acciones a:active,
+.tarjeta-acciones button:active {
+  transform: translateY(2px) scale(0.97);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.14);
+}
+
+/* Botones de paginación (Anterior / Siguiente) */
+.paginador button,
+.paginacion button,
+[class*="pagin"] button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1.5px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.08s ease;
+}
+
+.paginador button:hover:not(:disabled),
+.paginacion button:hover:not(:disabled),
+[class*="pagin"] button:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+.paginador button:active:not(:disabled),
+.paginacion button:active:not(:disabled),
+[class*="pagin"] button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+}
