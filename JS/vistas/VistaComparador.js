@@ -2,234 +2,345 @@ class VistaComparador {
   constructor(contenedor, props = {}) {
     this.contenedor = contenedor;
     this.props = props;
-    this.recetas = Array.isArray(props.comparador) ? [...props.comparador] : [];
-    this.busquedas = {};
-    this.generacionesBusqueda = { A: 0, B: 0 };
-    this.temporizadores = {};
-    this.controladores = {};
-    this.paneles = {};
+    this.estado = {
+      controllerA: null,
+      controllerB: null
+    };
     this.render();
   }
 
+  obtenerComparador() {
+    if (typeof app !== 'undefined' && app.estadoGlobal) {
+      return app.estadoGlobal.comparador;
+    }
+    if (!window._comparadorFallback) {
+      window._comparadorFallback = [];
+    }
+    return window._comparadorFallback;
+  }
+
+  notificarCambio() {
+    const comparador = this.obtenerComparador();
+    window.dispatchEvent(new CustomEvent('app:comparador-actualizado', {
+      detail: { cantidad: comparador.length }
+    }));
+  }
+
   render() {
-    this.cancelarBusquedas();
+    const comparador = this.obtenerComparador();
+
     this.contenedor.innerHTML = `
       <section class="vista-comparador">
-        <h1>Comparador de recetas</h1>
-        <p>Selecciona hasta dos recetas para revisar sus diferencias.</p>
+        <h2>Comparador de Recetas</h2>
         <div class="paneles-comparador-grid">
-          ${this.renderContenedorPanel('A')}
-          ${this.renderContenedorPanel('B')}
+          <div class="panel-comparador" id="panel-a">
+            <h3>Panel A</h3>
+            <div id="contenido-panel-a"></div>
+          </div>
+          <div class="panel-comparador" id="panel-b">
+            <h3>Panel B</h3>
+            <div id="contenido-panel-b"></div>
+          </div>
         </div>
         <div class="acciones-comparador-central">
-          <button type="button" id="btn-intercambiar" class="btn-secundario"
-            ${this.recetas.length < 2 ? 'disabled' : ''}>
-            Intercambiar recetas
-          </button>
+          <button id="btn-intercambiar" class="btn-secundario" ${comparador.length < 2 ? 'disabled' : ''}>Intercambiar Recetas</button>
         </div>
         <div id="tabla-comparacion-container"></div>
       </section>
     `;
 
-    this.montarPanel('A', 0);
-    this.montarPanel('B', 1);
-    this.tabla = new TablaComparacion(
-      this.contenedor.querySelector('#tabla-comparacion-container'),
-      this.recetas
-    );
-    this.contenedor.querySelector('#btn-intercambiar')
-      .addEventListener('click', () => this.intercambiarRecetas());
+    this.renderizarPanel('A', comparador[0]);
+    this.renderizarPanel('B', comparador[1]);
+    this.configurarEventosGlobales();
+
+    if (comparador.length === 2) {
+      this.renderizarTablaComparacion(comparador[0], comparador[1]);
+    }
   }
 
-  renderContenedorPanel(letra) {
-    return `
-      <section class="panel-comparador" aria-label="Panel ${letra}">
-        <h2>Panel ${letra}</h2>
-        <div id="panel-${letra.toLowerCase()}"></div>
-        <div class="panel-buscador-interno" id="buscador-${letra.toLowerCase()}">
-          <label for="input-busqueda-${letra.toLowerCase()}">Buscar receta por nombre</label>
-          <input type="search" class="input-busqueda-panel"
-            id="input-busqueda-${letra.toLowerCase()}" autocomplete="off"
-            aria-controls="sugerencias-${letra.toLowerCase()}"
-            placeholder="Escribe al menos 2 caracteres">
-          <div class="sugerencias-panel" id="sugerencias-${letra.toLowerCase()}"
-            role="listbox" aria-label="Resultados"></div>
+  renderizarPanel(panelId, receta) {
+    const contenedorId = panelId === 'A' ? 'contenido-panel-a' : 'contenido-panel-b';
+    const container = document.getElementById(contenedorId);
+    if (!container) return;
+
+    if (receta) {
+      const catLegible = (receta.strCategory && receta.strCategory !== 'null') ? receta.strCategory : 'General';
+      const areaLegible = (receta.strArea && receta.strArea !== 'null') ? receta.strArea : 'Internacional';
+
+      container.innerHTML = `
+        <div class="panel-receta-seleccionada">
+          <img src="${receta.strMealThumb}" alt="${receta.strMeal}">
+          <h4>${receta.strMeal}</h4>
+          <p><strong>Categoría:</strong> ${catLegible}</p>
+          <p><strong>Origen:</strong> ${areaLegible}</p>
+          <button class="btn-secundario btn-vaciar-panel" data-panel="${panelId}">Quitar Receta</button>
         </div>
-      </section>
-    `;
-  }
+      `;
 
-  montarPanel(letra, indice) {
-    const contenedor = this.contenedor.querySelector(`#panel-${letra.toLowerCase()}`);
-    const receta = this.recetas[indice] || null;
-    this.paneles[letra] = new PanelComparador(contenedor, letra, receta, {
-      etiqueta: `Receta ${letra}`,
-      onAgregar: () => this.abrirBusqueda(letra),
-      onReemplazar: () => this.abrirBusqueda(letra),
-      onQuitar: () => this.quitarReceta(indice)
-    });
-
-    const buscador = this.contenedor.querySelector(`#buscador-${letra.toLowerCase()}`);
-    buscador.hidden = Boolean(receta);
-    const input = buscador.querySelector('.input-busqueda-panel');
-    input.addEventListener('input', () => this.buscarRecetas(letra, input.value.trim()));
-    input.addEventListener('keydown', evento => {
-      if (evento.key === 'Escape') {
-        input.value = '';
-        this.mostrarSugerencias(letra, []);
-      }
-    });
-  }
-
-  abrirBusqueda(letra) {
-    const buscador = this.contenedor.querySelector(`#buscador-${letra.toLowerCase()}`);
-    if (!buscador) return;
-    buscador.hidden = false;
-    buscador.querySelector('input').focus();
-    this.contenedor.querySelector(`#sugerencias-${letra.toLowerCase()}`).textContent =
-      'Busca una receta para agregarla.';
-  }
-
-  cancelarBusqueda(letra) {
-    clearTimeout(this.temporizadores[letra]);
-    this.controladores[letra]?.abort();
-    this.generacionesBusqueda[letra]++;
-  }
-
-  cancelarBusquedas() {
-    ['A', 'B'].forEach(letra => this.cancelarBusqueda(letra));
-  }
-
-  async buscarRecetas(letra, consulta) {
-    this.cancelarBusqueda(letra);
-    const generacion = this.generacionesBusqueda[letra];
-    const lista = this.contenedor.querySelector(`#sugerencias-${letra.toLowerCase()}`);
-    if (consulta.length < 2) {
-      lista.textContent = consulta ? 'Escribe al menos 2 caracteres.' : '';
-      return;
-    }
-
-    lista.textContent = 'Buscando recetas...';
-    this.temporizadores[letra] = setTimeout(async () => {
-      const controlador = new AbortController();
-      this.controladores[letra] = controlador;
-      try {
-        const respuesta = await fetch(
-          `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(consulta)}`,
-          { signal: controlador.signal }
-        );
-        if (!respuesta.ok) throw new Error(`La solicitud falló (${respuesta.status}).`);
-        const datos = await respuesta.json();
-        if (generacion !== this.generacionesBusqueda[letra] || !lista.isConnected) return;
-        const recetas = (datos.meals || []).filter(receta =>
-          !this.recetas.some((actual, indice) =>
-            actual?.idMeal === receta.idMeal && indice !== (letra === 'A' ? 0 : 1)
-          )
-        );
-        this.mostrarSugerencias(letra, recetas);
-      } catch (error) {
-        if (error.name === 'AbortError' || generacion !== this.generacionesBusqueda[letra]) return;
-        console.error('Error al buscar recetas para comparar:', error);
-        lista.innerHTML = '<p class="error-texto">No se pudo completar la búsqueda.</p>';
-      }
-    }, 350);
-  }
-
-  mostrarSugerencias(letra, recetas) {
-    const lista = this.contenedor.querySelector(`#sugerencias-${letra.toLowerCase()}`);
-    if (!lista) return;
-    if (!recetas.length) {
-      lista.textContent = 'No se encontraron recetas disponibles.';
-      return;
-    }
-
-    lista.innerHTML = recetas.slice(0, 6).map(receta => `
-      <button type="button" class="sugerencia-item" role="option"
-        data-id="${this.escaparHTML(receta.idMeal)}">
-        ${receta.strMealThumb
-          ? `<img src="${this.escaparHTML(receta.strMealThumb)}" alt="" loading="lazy">`
-          : ''}
-        <span>${this.escaparHTML(receta.strMeal || 'Receta sin nombre')}</span>
-      </button>
-    `).join('');
-    lista.querySelectorAll('[data-id]').forEach(boton => {
-      boton.addEventListener('click', () => this.seleccionarReceta(letra, boton.dataset.id));
-    });
-  }
-
-  escaparHTML(valor) {
-    return String(valor ?? '').replace(/[&<>"']/g, caracter => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    })[caracter]);
-  }
-
-  async seleccionarReceta(letra, id) {
-    const indice = letra === 'A' ? 0 : 1;
-    const lista = this.contenedor.querySelector(`#sugerencias-${letra.toLowerCase()}`);
-    lista.textContent = 'Cargando receta...';
-    try {
-      const respuesta = await fetch(
-        `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${encodeURIComponent(id)}`
-      );
-      if (!respuesta.ok) throw new Error(`La solicitud falló (${respuesta.status}).`);
-      const datos = await respuesta.json();
-      const receta = datos.meals?.[0];
-      if (!receta) throw new Error('No se encontró el detalle de la receta.');
-
-      const otras = this.recetas.filter((actual, posicion) =>
-        posicion !== indice && actual?.idMeal === receta.idMeal
-      );
-      if (otras.length) {
-        this.mostrarMensaje('No puedes comparar una receta consigo misma.');
-        return;
-      }
-
-      const nuevas = [...this.recetas];
-      nuevas[indice] = receta;
-      this.publicarCambio(nuevas.filter(Boolean));
-    } catch (error) {
-      console.error('Error al cargar receta para comparar:', error);
-      this.mostrarMensaje('No se pudo cargar la receta seleccionada.');
-    }
-  }
-
-  quitarReceta(indice) {
-    const nuevas = [...this.recetas];
-    nuevas.splice(indice, 1);
-    this.publicarCambio(nuevas);
-  }
-
-  intercambiarRecetas() {
-    if (this.recetas.length !== 2) return;
-    this.publicarCambio([this.recetas[1], this.recetas[0]]);
-  }
-
-  publicarCambio(recetas) {
-    this.recetas = recetas;
-    if (typeof this.props.alCambiarComparador === 'function') {
-      this.props.alCambiarComparador([...recetas]);
+      container.querySelector('.btn-vaciar-panel').addEventListener('click', () => {
+        this.quitarReceta(panelId);
+      });
     } else {
-      this.render();
+      container.innerHTML = `
+        <div class="panel-buscador-interno">
+          <input type="text" class="input-busqueda-panel" data-panel="${panelId}" placeholder="Buscar receta por nombre...">
+          <div class="sugerencias-panel" id="sugerencias-${panelId.toLowerCase()}"></div>
+        </div>
+      `;
+
+      const input = container.querySelector('.input-busqueda-panel');
+      input.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        this.manejarDebounceBusqueda(panelId, query);
+      });
     }
   }
 
-  actualizar(recetas) {
-    this.recetas = Array.isArray(recetas) ? [...recetas].slice(0, 2) : [];
+  manejarDebounceBusqueda(panelId, query) {
+    const propController = panelId === 'A' ? 'controllerA' : 'controllerB';
+    if (this.estado[propController]) {
+      this.estado[propController].abort();
+    }
+
+    if (query.length < 2) {
+      const sugerenciasEl = document.getElementById(`sugerencias-${panelId.toLowerCase()}`);
+      if (sugerenciasEl) sugerenciasEl.innerHTML = '';
+      return;
+    }
+
+    this.estado[propController] = new AbortController();
+    const signal = this.estado[propController].signal;
+
+    setTimeout(async () => {
+      try {
+        const res = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`, { signal });
+        const data = await res.json();
+        const recetas = data.meals || [];
+        this.mostrarSugerenciasPanel(panelId, recetas);
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Error buscando receta:', error);
+        }
+      }
+    }, 400);
+  }
+
+  mostrarSugerenciasPanel(panelId, recetas) {
+    const sugerenciasEl = document.getElementById(`sugerencias-${panelId.toLowerCase()}`);
+    if (!sugerenciasEl) return;
+
+    if (recetas.length === 0) {
+      sugerenciasEl.innerHTML = '<p class="sugerencia-vacia">No se encontraron recetas.</p>';
+      return;
+    }
+
+    sugerenciasEl.innerHTML = recetas.slice(0, 5).map(r => `
+      <div class="sugerencia-item" data-id="${r.idMeal}" style="display:flex; align-items:center; gap:0.75rem; padding:0.5rem; border-bottom:1px solid #eee; cursor:pointer;">
+        <img src="${r.strMealThumb}" alt="${r.strMeal}">
+        <span>${r.strMeal}</span>
+      </div>
+    `).join('');
+
+    sugerenciasEl.querySelectorAll('.sugerencia-item').forEach(item => {
+      item.addEventListener('click', async () => {
+        const id = item.getAttribute('data-id');
+        const recetaCompleta = await this.obtenerRecetaPorId(id);
+        if (recetaCompleta) {
+          this.agregarRecetaAComparador(recetaCompleta);
+        }
+      });
+    });
+  }
+
+  async obtenerRecetaPorId(id) {
+    try {
+      const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`);
+      const data = await res.json();
+      const raw = data.meals ? data.meals[0] : null;
+      return (raw && typeof normalizarReceta === 'function') ? normalizarReceta(raw) : raw;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  agregarRecetaAComparador(receta) {
+    const comparador = this.obtenerComparador();
+
+    if (comparador.some(r => r.idMeal === receta.idMeal)) {
+      alert('No se puede comparar una receta consigo misma.');
+      return;
+    }
+
+    if (comparador.length < 2) {
+      comparador.push(receta);
+    } else {
+      comparador[0] = comparador[1];
+      comparador[1] = receta;
+    }
+
+    this.notificarCambio();
     this.render();
   }
 
-  mostrarMensaje(mensaje) {
-    window.dispatchEvent(new CustomEvent('app:mensaje', { detail: { mensaje } }));
+  quitarReceta(panelId) {
+    const comparador = this.obtenerComparador();
+    if (panelId === 'A') {
+      comparador.shift();
+    } else {
+      comparador.pop();
+    }
+    this.notificarCambio();
+    this.render();
+  }
+
+  configurarEventosGlobales() {
+    const btnIntercambiar = document.getElementById('btn-intercambiar');
+    if (btnIntercambiar) {
+      btnIntercambiar.addEventListener('click', () => {
+        const comparador = this.obtenerComparador();
+        if (comparador.length === 2) {
+          const temp = comparador[0];
+          comparador[0] = comparador[1];
+          comparador[1] = temp;
+          this.render();
+        }
+      });
+    }
+  }
+
+  extraerIngredientes(receta) {
+    const ingredientes = [];
+    for (let i = 1; i <= 20; i++) {
+      const ing = receta[`strIngredient${i}`];
+      if (ing && ing.trim() !== '') {
+        ingredientes.push(ing.trim().toLowerCase());
+      }
+    }
+    return ingredientes;
+  }
+
+  extraerPasos(receta) {
+    if (!receta.strInstructions) return 0;
+    const lineas = receta.strInstructions.split('\n');
+    const pasos = lineas
+      .map(l => l.trim())
+      .filter(l => l.length > 0 && !/^step\s*\d+/i.test(l) && !/^\d+\.$/.test(l));
+    return pasos.length;
+  }
+
+  extraerEtiquetas(receta) {
+    if (!receta.strTags) return [];
+    return receta.strTags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+  }
+
+  renderizarTablaComparacion(recetaA, recetaB) {
+    const container = document.getElementById('tabla-comparacion-container');
+    if (!container) return;
+
+    const ingsA = this.extraerIngredientes(recetaA);
+    const ingsB = this.extraerIngredientes(recetaB);
+
+    const pasosA = this.extraerPasos(recetaA);
+    const pasosB = this.extraerPasos(recetaB);
+
+    const palabrasA = recetaA.strInstructions ? recetaA.strInstructions.trim().split(/\s+/).length : 0;
+    const palabrasB = recetaB.strInstructions ? recetaB.strInstructions.trim().split(/\s+/).length : 0;
+
+    const tagsA = this.extraerEtiquetas(recetaA);
+    const tagsB = this.extraerEtiquetas(recetaB);
+    const tagsComun = tagsA.filter(t => tagsB.includes(t));
+
+    const ingsSetA = new Set(ingsA);
+    const ingsSetB = new Set(ingsB);
+    const ingsComun = ingsA.filter(i => ingsSetB.has(i));
+    const ingsExclusivosA = ingsA.filter(i => !ingsSetB.has(i));
+    const ingsExclusivosB = ingsB.filter(i => !ingsSetA.has(i));
+
+    const totalDistintos = new Set([...ingsA, ...ingsB]).size;
+    const similitud = totalDistintos > 0 ? Math.round((ingsComun.length / totalDistintos) * 100) : 0;
+
+    const videoA = Boolean(recetaA.strYoutube && recetaA.strYoutube.trim() !== '');
+    const videoB = Boolean(recetaB.strYoutube && recetaB.strYoutube.trim() !== '');
+
+    const catA = (recetaA.strCategory && recetaA.strCategory !== 'null') ? recetaA.strCategory : 'General';
+    const catB = (recetaB.strCategory && recetaB.strCategory !== 'null') ? recetaB.strCategory : 'General';
+    const areaA = (recetaA.strArea && recetaA.strArea !== 'null') ? recetaA.strArea : 'Internacional';
+    const areaB = (recetaB.strArea && recetaB.strArea !== 'null') ? recetaB.strArea : 'Internacional';
+
+    let recetaSimple = 'Empate';
+    if (ingsA.length !== ingsB.length) {
+      recetaSimple = ingsA.length < ingsB.length ? recetaA.strMeal : recetaB.strMeal;
+    } else if (pasosA !== pasosB) {
+      recetaSimple = pasosA < pasosB ? recetaA.strMeal : recetaB.strMeal;
+    } else if (palabrasA !== palabrasB) {
+      recetaSimple = palabrasA < palabrasB ? recetaA.strMeal : recetaB.strMeal;
+    }
+
+    container.innerHTML = `
+      <div class="resultado-comparacion-wrapper">
+        <h3>Informe de Comparación</h3>
+        <table class="tabla-metricas">
+          <thead>
+            <tr>
+              <th>Métrica</th>
+              <th>${recetaA.strMeal}</th>
+              <th>${recetaB.strMeal}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cantidad de ingredientes</td>
+              <td class="${ingsA.length < ingsB.length ? 'menor-valor' : ''}">${ingsA.length}</td>
+              <td class="${ingsB.length < ingsA.length ? 'menor-valor' : ''}">${ingsB.length}</td>
+            </tr>
+            <tr>
+              <td>Cantidad de pasos</td>
+              <td class="${pasosA < pasosB ? 'menor-valor' : ''}">${pasosA}</td>
+              <td class="${pasosB < pasosA ? 'menor-valor' : ''}">${pasosB}</td>
+            </tr>
+            <tr>
+              <td>Extensión de instrucciones (palabras)</td>
+              <td class="${palabrasA < palabrasB ? 'menor-valor' : ''}">${palabrasA} palabras</td>
+              <td class="${palabrasB < palabrasA ? 'menor-valor' : ''}">${palabrasB} palabras</td>
+            </tr>
+            <tr>
+              <td>Categoría y Origen</td>
+              <td>${catA} (${areaA})</td>
+              <td>${catB} (${areaB}) — ${catA === catB && areaA === areaB ? 'Coinciden' : 'Diferentes'}</td>
+            </tr>
+            <tr>
+              <td>Etiquetas en común</td>
+              <td colspan="2">${tagsComun.length > 0 ? tagsComun.join(', ') : 'Ninguna'}</td>
+            </tr>
+            <tr>
+              <td>Video disponible</td>
+              <td>${videoA ? 'Sí' : 'No'}</td>
+              <td>${videoB ? 'Sí' : 'No'}</td>
+            </tr>
+            <tr>
+              <td>Ingredientes en común</td>
+              <td colspan="2">${ingsComun.length > 0 ? ingsComun.join(', ') : 'Ninguno'}</td>
+            </tr>
+            <tr>
+              <td>Ingredientes exclusivos</td>
+              <td><strong>Solo A:</strong> ${ingsExclusivosA.join(', ') || 'Ninguno'}</td>
+              <td><strong>Solo B:</strong> ${ingsExclusivosB.join(', ') || 'Ninguno'}</td>
+            </tr>
+            <tr>
+              <td>Similitud</td>
+              <td colspan="2"><strong>${similitud}%</strong></td>
+            </tr>
+            <tr>
+              <td>Receta más sencilla</td>
+              <td colspan="2">🏆 <strong>${recetaSimple}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
   }
 
   destruir() {
-    this.cancelarBusquedas();
-    Object.values(this.paneles).forEach(panel => panel?.destruir());
-    this.tabla?.destruir();
-    this.contenedor.replaceChildren();
+    this.contenedor.innerHTML = '';
   }
 }
