@@ -1,0 +1,20 @@
+   - Nombre original de la aplicación y descripción.
+   - - Favor Saborito
+     - Una página web para consultar la información de gran cantidad de platillos al rededor del mundo, información tal como: origen, categoría, recetas, ingredientes, tutoriales. Incluido con un comparador de dos recetas a seleccionar
+   - Nombres de los dos integrantes y división del trabajo realizado.
+   - José D'Giovanni
+   - -
+   - Andrés Vivas
+   - -
+   - Instrucciones para ejecutar el proyecto.
+   - - Al descargar el proyecto y tener en una misma carpeta las carpetas JS y CSS junto con el archivo index.html el usuario debe abrir este ultimo archivo con su navegador de preferencia
+   - Lista de pseudocomponentes con su responsabilidad y los eventos que emite cada uno.
+   - - BarraNavegacion
+     - - Responsabilidad: Renderizar la barra superior de navegación, resaltar la ruta activa y mostrar la insignia dinámica con la cantidad de recetas en el comparador.
+     - - Eventos: Nativos: click en los enlaces <a data-link>. CustomEvents: app:comparador-actualizado y hashchange para actualizar la UI.
+     - TarjetaReceta
+     - - Responsabilidad: Mostrar la vista previa resumida de una receta (imagen, nombre, categoría, origen normalizado) y sus acciones rápidas dentro de las cuadrículas.
+     - - Eventos: Nativos: click en el enlace de detalle (#detalle/:id) y en el botón de comparar. CustomEvents: app:agregar-comparador (con el detalle de la receta).
+   - Dónde se usó `Promise.all` y dónde `Promise.allSettled`, y por qué.
+   - Sección de **decisiones de diseño**: paleta de colores, tipografías, criterio de iconografía y referencias de inspiración.
+   - Capturas de pantalla de cada vista.
