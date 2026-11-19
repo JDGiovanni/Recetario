@@ -9,38 +9,350 @@
   --success-color: #2ecc71;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-body { background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; min-height: 100vh; line-height: 1.6; }
-.hidden { display: none !important; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
 
-.app-header { background: var(--card-bg); border-bottom: 1px solid var(--border-color); padding: 1rem 2rem; position: sticky; top: 0; z-index: 100; margin-bottom: 1.5rem; }
-.header-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
-.brand { display: flex; align-items: center; gap: 0.75rem; }
-.brand-logo { font-size: 1.8rem; }
-.brand-title { font-size: 1.5rem; color: var(--primary); }
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  line-height: 1.6;
+}
 
-.main-nav { display: flex; gap: 1.5rem; align-items: center; }
-.main-nav a { text-decoration: none; color: var(--text-color); font-weight: 600; padding: 0.5rem 1rem; border-radius: 4px; transition: background 0.2s; }
-.main-nav a:hover, .main-nav a.activo { background: var(--primary); color: #fff; }
+.hidden {
+  display: none !important;
+}
 
-.app-main { flex: 1; max-width: 1200px; width: 100%; margin: 0 auto; padding: 1.5rem 2rem 3rem 2rem; }
-.app-footer { background: #2c3e50; color: #fff; text-align: center; padding: 1.5rem; margin-top: auto; }
-
-.btn-primario, .btn-secundario { padding: 0.7rem 1.4rem; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; text-align: center; transition: background 0.2s; margin-top: 0.75rem; margin-bottom: 1rem; }
-.btn-primario { background: var(--primary); color: #fff; }
-.btn-primario:hover { background: var(--primary-dark); }
-.btn-secundario { background: #e2e8f0; color: #333; margin-bottom: 1rem; }
-.btn-secundario:hover { background: #cbd5e1; }
-
-img { max-width: 100%; height: auto; display: block; }
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
 
 /* ==========================================
-   VISTA DETALLE - CORRECCIÓN DE TAMAÑOS Y ESPACIADOS
+   LAYOUT PRINCIPAL, HEADER Y NAVEGACIÓN
+   ========================================== */
+.app-header {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  margin-bottom: 1.5rem;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-logo {
+  font-size: 1.8rem;
+}
+
+.brand-title {
+  font-size: 1.5rem;
+  color: var(--primary);
+}
+
+.main-nav {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.main-nav a {
+  text-decoration: none;
+  color: var(--text-color);
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.main-nav a:hover,
+.main-nav a.activo {
+  background: var(--primary);
+  color: #fff;
+}
+
+.app-main {
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 3rem 2rem;
+}
+
+.app-footer {
+  background: #2c3e50;
+  color: #fff;
+  text-align: center;
+  padding: 1.5rem;
+  margin-top: auto;
+}
+
+/* ==========================================
+   BOTONES Y FORMULARIOS COMPARTIDOS
+   ========================================== */
+.btn-primario,
+.btn-secundario,
+.tarjeta-acciones .btn-accion,
+.tarjeta-acciones .btn-comparar,
+.btn-accion.btn-comparar {
+  padding: 0.7rem 1.4rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  line-height: 1.2;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: fit-content;
+  max-width: 100%;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.14);
+  transition: background 0.2s, transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.btn-primario,
+.tarjeta-acciones .btn-accion,
+.tarjeta-acciones .btn-comparar,
+.btn-accion.btn-comparar {
+  background: var(--primary);
+  color: #fff;
+  margin: 0.75rem 0 1rem 0;
+}
+
+.btn-primario:hover,
+.tarjeta-acciones .btn-accion:hover,
+.tarjeta-acciones .btn-comparar:hover,
+.btn-accion.btn-comparar:hover {
+  background: var(--primary-dark);
+}
+
+.btn-secundario {
+  background: #e2e8f0;
+  color: #333;
+  margin: 0.75rem 0 1rem 0;
+}
+
+.btn-secundario:hover {
+  background: #cbd5e1;
+}
+
+.btn-primario:active,
+.btn-secundario:active,
+.tarjeta-acciones .btn-accion:active,
+.tarjeta-acciones .btn-comparar:active,
+.btn-accion.btn-comparar:active,
+#btn-volver:active {
+  transform: translateY(2px) scale(0.97);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.14);
+}
+
+.tarjeta-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.tarjeta-acciones > * {
+  margin: 0;
+}
+
+.vista-explorar input[type="text"],
+.vista-explorar input[type="search"],
+.vista-explorar select,
+.formulario-busqueda input[type="text"],
+.formulario-busqueda input[type="search"],
+.formulario-busqueda select,
+.panel-comparador input[type="text"],
+.panel-comparador input[type="search"],
+.vista-comparador input[type="text"],
+.vista-comparador input[type="search"] {
+  padding: 0.65rem 0.95rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  min-height: 44px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.vista-explorar input[type="text"]:focus,
+.vista-explorar input[type="search"]:focus,
+.vista-explorar select:focus,
+.formulario-busqueda input[type="text"]:focus,
+.formulario-busqueda input[type="search"]:focus,
+.formulario-busqueda select:focus,
+.panel-comparador input[type="text"]:focus,
+.panel-comparador input[type="search"]:focus,
+.vista-comparador input[type="text"]:focus,
+.vista-comparador input[type="search"]:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.16);
+}
+
+/* ==========================================
+   INICIO - RECETA DESTACADA
+   ========================================== */
+#receta-destacada-card img,
+.tarjeta-imagen-wrapper img,
+.receta-destacada img {
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+#receta-destacada-card h3,
+#receta-destacada-card h4,
+.receta-destacada h3,
+.receta-destacada h4,
+.destacada-info h3 {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.3;
+  margin: 0.25rem 0 0.4rem 0;
+}
+
+#receta-destacada-card p,
+.receta-destacada p,
+.destacada-info p {
+  line-height: 1.75;
+  margin-bottom: 0.55rem;
+  color: #475569;
+}
+
+#receta-destacada-card p:first-of-type,
+.receta-destacada .meta-receta,
+.destacada-meta {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  letter-spacing: 0.03em;
+  margin-bottom: 0.15rem;
+}
+
+/* ==========================================
+   EXPLORAR - FORMULARIO DE BÚSQUEDA
+   ========================================== */
+.vista-explorar form,
+.formulario-busqueda {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  margin: 0.75rem 0 1.25rem 0;
+}
+
+.vista-explorar form > div,
+.vista-explorar form > p,
+.formulario-busqueda > div,
+.formulario-busqueda > p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.vista-explorar label,
+.formulario-busqueda label {
+  min-width: 105px;
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+}
+
+.vista-explorar form input[type="text"],
+.vista-explorar form input[type="search"],
+.vista-explorar form select,
+.formulario-busqueda input[type="text"],
+.formulario-busqueda input[type="search"],
+.formulario-busqueda select {
+  flex: 0 1 280px;
+  margin: 0;
+}
+
+/* ==========================================
+   CATEGORÍAS Y ORÍGENES
+   ========================================== */
+#tab-categorias,
+#tab-origenes {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.35rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  margin: 0 0.5rem 1rem 0;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+#tab-categorias:hover,
+#tab-origenes:hover {
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+#tab-categorias.activo,
+#tab-origenes.activo {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+#tab-categorias:active,
+#tab-origenes:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.08);
+}
+
+/* ==========================================
+   VISTA DETALLE, INGREDIENTES Y PASOS
    ========================================== */
 .vista-detalle {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+#btn-volver {
+  align-self: flex-start;
+  width: auto;
+  gap: 0.35rem;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.9rem;
+  margin: 0;
 }
 
 .detalle-header {
@@ -53,10 +365,9 @@ img { max-width: 100%; height: auto; display: block; }
   border: 1px solid var(--border-color);
 }
 
-/* Imagen principal controlada y proporcionada (ya no gigantesca) */
 .detalle-header img {
   width: 100%;
-  max-height: 280px; 
+  max-height: 280px;
   object-fit: cover;
   border-radius: 8px;
 }
@@ -64,7 +375,7 @@ img { max-width: 100%; height: auto; display: block; }
 .detalle-info-principal {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem; /* Espaciado significativo entre textos */
+  gap: 0.75rem;
 }
 
 .detalle-info-principal h2 {
@@ -80,11 +391,8 @@ img { max-width: 100%; height: auto; display: block; }
   margin-top: 1rem;
 }
 
-@media (max-width: 768px) {
-  .detalle-secciones { grid-template-columns: 1fr; }
-}
-
-.columna-ingredientes, .columna-pasos {
+.columna-ingredientes,
+.columna-pasos {
   background: var(--card-bg);
   padding: 1.5rem;
   border-radius: 10px;
@@ -94,7 +402,8 @@ img { max-width: 100%; height: auto; display: block; }
   gap: 1rem;
 }
 
-.columna-ingredientes h3, .columna-pasos h3 {
+.columna-ingredientes h3,
+.columna-pasos h3 {
   font-size: 1.3rem;
   color: var(--primary-dark);
   border-bottom: 2px solid #f1f5f9;
@@ -102,26 +411,22 @@ img { max-width: 100%; height: auto; display: block; }
   margin-bottom: 0.5rem;
 }
 
-/* ==========================================
-   INGREDIENTES - IMÁGENES AMPLIADAS Y BUEN INTERLINEADO
-   ========================================== */
 .grid-ingredientes {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem; /* Espaciado vertical significativo entre cada ingrediente */
+  gap: 0.85rem;
 }
 
 .ingrediente-item {
   display: flex;
   align-items: center;
-  gap: 1rem; /* Espacio horizontal entre la imagen y el texto */
+  gap: 1rem;
   padding: 0.5rem;
   background: #f8fafc;
   border-radius: 6px;
   border: 1px solid #e2e8f0;
 }
 
-/* Imágenes de ingredientes ahora con tamaño visible y adecuado (64px) */
 .ingrediente-item img {
   width: 64px;
   height: 64px;
@@ -137,12 +442,11 @@ img { max-width: 100%; height: auto; display: block; }
   color: #334155;
 }
 
-/* Pasos de preparación con interlineado claro */
 .lista-pasos {
   padding-left: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem; /* Espacio vertical significativo entre cada paso */
+  gap: 0.85rem;
 }
 
 .lista-pasos li {
@@ -150,24 +454,149 @@ img { max-width: 100%; height: auto; display: block; }
   color: #334155;
 }
 
-/* Cuadrículas generales */
-.grid-tarjetas, .grid-categorias, .grid-origenes { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
-.tarjeta-receta, .card-categoria, .card-origen { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
-.tarjeta-receta:hover, .card-categoria:hover, .card-origen:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-.tarjeta-receta img, .card-categoria img { width: 100%; height: 180px; object-fit: cover; }
-.tarjeta-body, .card-categoria-body { padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; flex: 1; }
-.card-origen { padding: 1.5rem; align-items: center; justify-content: center; text-align: center; font-weight: bold; }
+/* ==========================================
+   CUADRÍCULAS Y TARJETAS
+   ========================================== */
+.grid-tarjetas,
+.grid-categorias,
+.grid-origenes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
 
-/* Comparador */
-.paneles-comparador-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
-@media (max-width: 768px) { .paneles-comparador-grid { grid-template-columns: 1fr; } }
-.panel-comparador { background: var(--card-bg); border: 2px dashed var(--border-color); border-radius: 8px; padding: 1.5rem; min-height: 250px; }
-.panel-receta-seleccionada img { width: 100%; height: 160px; object-fit: cover; border-radius: 6px; margin-bottom: 0.75rem; }
-.sugerencia-item img { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; }
-.tabla-metricas { width: 100%; border-collapse: collapse; margin-top: 1.5rem; background: var(--card-bg); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-.tabla-metricas th, .tabla-metricas td { padding: 0.85rem 1rem; border: 1px solid var(--border-color); text-align: left; }
-.tabla-metricas th { background: #f8fafc; }
-.menor-valor { background: #dcfce7; font-weight: bold; color: #166534; }
+.tarjeta-receta,
+.card-categoria,
+.card-origen {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
 
-.skeleton-banner, .skeleton-grid, .skeleton-loader { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 4px; min-height: 150px; }
-@keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.tarjeta-receta:hover,
+.card-categoria:hover,
+.card-origen:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.tarjeta-receta img,
+.card-categoria img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.tarjeta-body,
+.card-categoria-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.card-origen {
+  padding: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* ==========================================
+   COMPARADOR Y ESTADOS DE CARGA
+   ========================================== */
+.paneles-comparador-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.panel-comparador {
+  background: var(--card-bg);
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  min-height: 250px;
+}
+
+.panel-comparador input[type="text"],
+.panel-comparador input[type="search"],
+.vista-comparador input[type="text"],
+.vista-comparador input[type="search"] {
+  width: 100%;
+  max-width: 340px;
+  margin: 0.5rem 0 0.75rem 0;
+}
+
+.panel-receta-seleccionada img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.sugerencia-item img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.tabla-metricas {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+  background: var(--card-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.tabla-metricas th,
+.tabla-metricas td {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.tabla-metricas th {
+  background: #f8fafc;
+}
+
+.menor-valor {
+  background: #dcfce7;
+  font-weight: bold;
+  color: #166534;
+}
+
+.skeleton-banner,
+.skeleton-grid,
+.skeleton-loader {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  min-height: 150px;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (max-width: 768px) {
+  .detalle-secciones,
+  .paneles-comparador-grid {
+    grid-template-columns: 1fr;
+  }
+}
