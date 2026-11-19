@@ -9,12 +9,33 @@
    - Instrucciones para ejecutar el proyecto.
    - - Al descargar el proyecto y tener en una misma carpeta las carpetas JS y CSS junto con el archivo index.html el usuario debe abrir este ultimo archivo con su navegador de preferencia
    - Lista de pseudocomponentes con su responsabilidad y los eventos que emite cada uno.
-   - - BarraNavegacion
-     - - Responsabilidad: Renderizar la barra superior de navegación, resaltar la ruta activa y mostrar la insignia dinámica con la cantidad de recetas en el comparador.
-     - - Eventos: Nativos: click en los enlaces <a data-link>. CustomEvents: app:comparador-actualizado y hashchange para actualizar la UI.
-     - TarjetaReceta
-     - - Responsabilidad: Mostrar la vista previa resumida de una receta (imagen, nombre, categoría, origen normalizado) y sus acciones rápidas dentro de las cuadrículas.
-     - - Eventos: Nativos: click en el enlace de detalle (#detalle/:id) y en el botón de comparar. CustomEvents: app:agregar-comparador (con el detalle de la receta).
-   - Dónde se usó `Promise.all` y dónde `Promise.allSettled`, y por qué.
-   - Sección de **decisiones de diseño**: paleta de colores, tipografías, criterio de iconografía y referencias de inspiración.
-   - Capturas de pantalla de cada vista.
+      - BarraNavegacion
+        - Responsabilidad: Renderizar la barra superior de navegación, resaltar la ruta activa y mostrar la insignia dinámica con la cantidad de recetas en el comparador.
+        - Eventos: Nativos: click en los enlaces <a data-link>. CustomEvents: app:comparador-actualizado y hashchange para actualizar la UI.
+      - TarjetaReceta
+        - Responsabilidad: Mostrar la vista previa resumida de una receta (imagen, nombre, categoría, origen normalizado) y sus acciones rápidas dentro de las cuadrículas.
+        - Eventos: Nativos: click en el enlace de detalle (#detalle/:id) y en el botón de comparar. CustomEvents: app:agregar-comparador (con el detalle de la receta).
+      - Paginador
+        - Responsabilidad: Gestionar la paginación del lado del cliente (dividiendo los resultados en bloques de 12 recetas) y renderizar los controles de página anterior/siguiente.
+        - Eventos: Nativos: click en los botones de cambio de página. Callbacks / Eventos: Notifica el cambio de página al componente padre (VistaExplorar) mediante callback o evento personalizado de paginación.
+      - FormularioBusqueda
+        - Responsabilidad: Renderizar los filtros combinables (nombre, categoría, origen e ingrediente) y capturar los criterios de búsqueda del usuario.
+        - Eventos: Nativos: submit del formulario y click en el botón de limpiar filtros. Callbacks / Eventos: Notifica los criterios activos a VistaExplorar para disparar las consultas en paralelo.
+      - ListaIngredientes
+        - Responsabilidad: Iterar sobre los 20 posibles campos de ingredientes y medidas de una receta, renderizando cada uno con su respectiva imagen miniatura desde TheMealDB.
+        - Eventos: Nativos: error en las etiquetas <img> para cargar una imagen de respaldo (placeholder.png) si el ingrediente no tiene foto en la API.
+      - PasosPreparacion
+        - Responsabilidad: Limpiar y formatear las instrucciones de cocina (eliminando encabezados redundantes o líneas vacías) en una lista ordenada paso a paso.
+        - Eventos: Ninguno (componente de presentación puro).
+      - PanelComparador
+        - Responsabilidad: Administrar un espacio individual del comparador (Panel A o B), permitiendo buscar recetas mediante sugerencias en vivo o quitar la receta asignada.
+        - Eventos: Nativos: input (con debounce de 400 ms y AbortController), click en sugerencias y click en "Quitar Receta". CustomEvents: app:comparador-actualizado al modificar el estado.
+      - TablaComparacion
+        - Responsabilidad: Renderizar la matriz comparativa cruzada cuando hay dos recetas seleccionadas (conteo de ingredientes, pasos, palabras, similitud porcentual y receta más sencilla).
+        - Eventos: Ninguno (componente de presentación puro).
+      - EstadoCarga
+        - Responsabilidad: Gestionar los estados visuales de espera (skeleton loaders) y mostrar mensajes de error con opción de recuperación cuando falla una petición.
+        - Eventos: Nativos: click en el botón .btn-reintentar para ejecutar el callback de recarga enviado por la vista.
+        - Dónde se usó `Promise.all` y dónde `Promise.allSettled`, y por qué.
+- Sección de **decisiones de diseño**: paleta de colores, tipografías, criterio de iconografía y referencias de inspiración.
+- Capturas de pantalla de cada vista.
