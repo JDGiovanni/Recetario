@@ -1,0 +1,173 @@
+:root {
+  --primary: #e67e22;
+  --primary-dark: #d35400;
+  --bg-color: #fcfcfc;
+  --text-color: #333;
+  --card-bg: #fff;
+  --border-color: #ddd;
+  --error-color: #e74c3c;
+  --success-color: #2ecc71;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; min-height: 100vh; line-height: 1.6; }
+.hidden { display: none !important; }
+
+.app-header { background: var(--card-bg); border-bottom: 1px solid var(--border-color); padding: 1rem 2rem; position: sticky; top: 0; z-index: 100; margin-bottom: 1.5rem; }
+.header-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
+.brand { display: flex; align-items: center; gap: 0.75rem; }
+.brand-logo { font-size: 1.8rem; }
+.brand-title { font-size: 1.5rem; color: var(--primary); }
+
+.main-nav { display: flex; gap: 1.5rem; align-items: center; }
+.main-nav a { text-decoration: none; color: var(--text-color); font-weight: 600; padding: 0.5rem 1rem; border-radius: 4px; transition: background 0.2s; }
+.main-nav a:hover, .main-nav a.activo { background: var(--primary); color: #fff; }
+
+.app-main { flex: 1; max-width: 1200px; width: 100%; margin: 0 auto; padding: 1.5rem 2rem 3rem 2rem; }
+.app-footer { background: #2c3e50; color: #fff; text-align: center; padding: 1.5rem; margin-top: auto; }
+
+.btn-primario, .btn-secundario { padding: 0.7rem 1.4rem; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; text-align: center; transition: background 0.2s; margin-top: 0.75rem; margin-bottom: 1rem; }
+.btn-primario { background: var(--primary); color: #fff; }
+.btn-primario:hover { background: var(--primary-dark); }
+.btn-secundario { background: #e2e8f0; color: #333; margin-bottom: 1rem; }
+.btn-secundario:hover { background: #cbd5e1; }
+
+img { max-width: 100%; height: auto; display: block; }
+
+/* ==========================================
+   VISTA DETALLE - CORRECCIÓN DE TAMAÑOS Y ESPACIADOS
+   ========================================== */
+.vista-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.detalle-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+/* Imagen principal controlada y proporcionada (ya no gigantesca) */
+.detalle-header img {
+  width: 100%;
+  max-height: 280px; 
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.detalle-info-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem; /* Espaciado significativo entre textos */
+}
+
+.detalle-info-principal h2 {
+  font-size: 1.8rem;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.detalle-secciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .detalle-secciones { grid-template-columns: 1fr; }
+}
+
+.columna-ingredientes, .columna-pasos {
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.columna-ingredientes h3, .columna-pasos h3 {
+  font-size: 1.3rem;
+  color: var(--primary-dark);
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ==========================================
+   INGREDIENTES - IMÁGENES AMPLIADAS Y BUEN INTERLINEADO
+   ========================================== */
+.grid-ingredientes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem; /* Espaciado vertical significativo entre cada ingrediente */
+}
+
+.ingrediente-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* Espacio horizontal entre la imagen y el texto */
+  padding: 0.5rem;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Imágenes de ingredientes ahora con tamaño visible y adecuado (64px) */
+.ingrediente-item img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  background: #fff;
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+}
+
+.ingrediente-item span {
+  font-size: 1rem;
+  color: #334155;
+}
+
+/* Pasos de preparación con interlineado claro */
+.lista-pasos {
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem; /* Espacio vertical significativo entre cada paso */
+}
+
+.lista-pasos li {
+  line-height: 1.7;
+  color: #334155;
+}
+
+/* Cuadrículas generales */
+.grid-tarjetas, .grid-categorias, .grid-origenes { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+.tarjeta-receta, .card-categoria, .card-origen { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+.tarjeta-receta:hover, .card-categoria:hover, .card-origen:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+.tarjeta-receta img, .card-categoria img { width: 100%; height: 180px; object-fit: cover; }
+.tarjeta-body, .card-categoria-body { padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; flex: 1; }
+.card-origen { padding: 1.5rem; align-items: center; justify-content: center; text-align: center; font-weight: bold; }
+
+/* Comparador */
+.paneles-comparador-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+@media (max-width: 768px) { .paneles-comparador-grid { grid-template-columns: 1fr; } }
+.panel-comparador { background: var(--card-bg); border: 2px dashed var(--border-color); border-radius: 8px; padding: 1.5rem; min-height: 250px; }
+.panel-receta-seleccionada img { width: 100%; height: 160px; object-fit: cover; border-radius: 6px; margin-bottom: 0.75rem; }
+.sugerencia-item img { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; }
+.tabla-metricas { width: 100%; border-collapse: collapse; margin-top: 1.5rem; background: var(--card-bg); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+.tabla-metricas th, .tabla-metricas td { padding: 0.85rem 1rem; border: 1px solid var(--border-color); text-align: left; }
+.tabla-metricas th { background: #f8fafc; }
+.menor-valor { background: #dcfce7; font-weight: bold; color: #166534; }
+
+.skeleton-banner, .skeleton-grid, .skeleton-loader { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 4px; min-height: 150px; }
+@keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
