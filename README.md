@@ -3,9 +3,9 @@
      - Una página web para consultar la información de gran cantidad de platillos al rededor del mundo, información tal como: origen, categoría, recetas, ingredientes, tutoriales. Incluido con un comparador de dos recetas a seleccionar
    - Nombres de los dos integrantes y división del trabajo realizado.
    - José D'Giovanni
-   - -
+   - - index.html, stylesheet.css, api.js, cache.js, comparación.js, recetas.js, Paginador.js, TarjetaReceta.js, VistaCategoriasOrigenes.js, VistaDetalle.js, app.js
    - Andrés Vivas
-   - -
+   - - VistaExplorar.js, VistaInicio.js, BarraNavegacion.js, FormularioBusqueda.js, EstadoCarga.js, ListaIngredientes.js, PanelComparador.js, PasosPreparacion.js, TablaComparacion.js, VistaComparador.js
    - Instrucciones para ejecutar el proyecto.
    - - Al descargar el proyecto y tener en una misma carpeta las carpetas JS y CSS junto con el archivo index.html el usuario debe abrir este ultimo archivo con su navegador de preferencia
    - Lista de pseudocomponentes con su responsabilidad y los eventos que emite cada uno.
